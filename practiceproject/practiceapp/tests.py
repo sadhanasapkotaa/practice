@@ -6,6 +6,24 @@ from .models import Order, OrderItem
 User = get_user_model()
 
 class OrderModelTest(TestCase):
+    def test_order_str(self):
+        order = Order.objects.create(
+            user=self.user,
+            idempotency_key='strkey',
+            request_hash='hashstr',
+        )
+        self.assertIn(str(order.id), str(order))
+        self.assertIn(str(self.user), str(order))
+
+    def test_order_default_values(self):
+        order = Order.objects.create(
+            user=self.user,
+            idempotency_key='defaultkey',
+            request_hash='hashdef',
+        )
+        self.assertEqual(order.currency, 'USD')
+        self.assertEqual(order.status, 'paid')
+        self.assertEqual(order.total_cents, 0)
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
 
@@ -39,6 +57,25 @@ class OrderModelTest(TestCase):
 
 
 class OrderItemModelTest(TestCase):
+    def test_orderitem_str(self):
+        item = OrderItem.objects.create(
+            order=self.order,
+            sku='SKU999',
+            name='Another Product',
+            price_cents=200,
+            quantity=3,
+        )
+        self.assertEqual(str(item), 'SKU999 x3')
+
+    def test_line_total_cents_zero_quantity(self):
+        item = OrderItem.objects.create(
+            order=self.order,
+            sku='SKUZERO',
+            name='Zero Product',
+            price_cents=100,
+            quantity=0,
+        )
+        self.assertEqual(item.line_total_cents(), 0)
     def setUp(self):
         self.user = User.objects.create_user(username='itemuser', password='testpass')
         self.order = Order.objects.create(
@@ -57,4 +94,3 @@ class OrderItemModelTest(TestCase):
         )
         self.assertEqual(item.line_total_cents(), 1000)
         self.assertEqual(str(item), 'SKU123 x2')
-		self.assertEqual(str(item), 'SKU123 x2')
