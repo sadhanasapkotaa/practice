@@ -82,6 +82,8 @@ class CheckoutView(APIView):
             return Response(data, status=status.HTTP_200_OK, headers={'Idempotency-Replayed': '1'})
 
 
+from .serializers import OrderSerializer, CheckoutSerializer, OrderItemSerializer
+
 class OrderViewSet(viewsets.ReadOnlyModelViewSet):
     """Order View Set"""
     permission_classes = [IsAuthenticated]
@@ -91,3 +93,24 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         # Per-user isolation: users can only view their own orders
         return Order.objects.filter(user=self.request.user).order_by('-created_at').prefetch_related('items')
+
+
+from rest_framework.generics import RetrieveAPIView
+
+class OrderDetailView(RetrieveAPIView):
+    """View a single order (detail)"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+
+
+class OrderItemDetailView(RetrieveAPIView):
+    """View a single order item (detail)"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderItemSerializer
+
+    def get_queryset(self):
+        # Only allow access to items belonging to the user's orders
+        return OrderItem.objects.filter(order__user=self.request.user)
