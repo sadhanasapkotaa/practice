@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'practiceapp',
+    'rest_framework.authtoken',
     'corsheaders'
 ]
 
@@ -137,3 +138,13 @@ CORS_ALLOW_METHODS = (
     "POST",
     "PUT",
 )
+
+REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'rest_framework.authentication.TokenAuthentication',
+],
+'DEFAULT_PERMISSION_CLASSES': [
+'rest_framework.permissions.IsAuthenticated',
+],
+'DEFAULT_PAGINATION_CLASS': 'practiceapp.pagination.OrderCursorPagination',
+}
